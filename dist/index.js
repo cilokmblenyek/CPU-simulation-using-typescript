@@ -127,9 +127,15 @@ class CPU {
     }
     load(args) {
         const [reg, addr] = args;
-        const value = this.memory[parseInt(addr)];
-        if (value !== undefined) {
-            this.registers.set(reg, value);
+        const addressValue = parseInt(addr);
+        if (!isNaN(addressValue)) {
+            this.registers.set(reg, addressValue);
+        }
+        else {
+            const value = this.memory[addressValue];
+            if (value !== undefined) {
+                this.registers.set(reg, value);
+            }
         }
     }
     store(args) {
