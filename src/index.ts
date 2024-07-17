@@ -1,3 +1,6 @@
+import { readFileSync } from "fs";
+import { join } from "path";
+
 class CPU {
   registers: Map<string, number>;
   memory: number[];
@@ -12,7 +15,6 @@ class CPU {
     ["r1", "r2", "r3", "r4"].forEach((reg) => this.registers.set(reg, 0));
   }
 
-  // Method to execute a given instruction
   execute(instruction: string) {
     const [opcode, ...args] = instruction.split(" ");
     switch (opcode) {
@@ -68,78 +70,97 @@ class CPU {
 
   add(args: string[]) {
     const [reg1, reg2, reg3] = args;
-    this.registers.set(
-      reg1,
-      (this.registers.get(reg2) ?? 0) + (this.registers.get(reg3) ?? 0)
-    );
+    const value1 = this.registers.get(reg2);
+    const value2 = this.registers.get(reg3);
+    if (value1 !== undefined && value2 !== undefined) {
+      this.registers.set(reg1, value1 + value2);
+    }
   }
 
   sub(args: string[]) {
     const [reg1, reg2, reg3] = args;
-    this.registers.set(
-      reg1,
-      (this.registers.get(reg2) ?? 0) - (this.registers.get(reg3) ?? 0)
-    );
+    const value1 = this.registers.get(reg2);
+    const value2 = this.registers.get(reg3);
+    if (value1 !== undefined && value2 !== undefined) {
+      this.registers.set(reg1, value1 - value2);
+    }
   }
 
   mul(args: string[]) {
     const [reg1, reg2, reg3] = args;
-    this.registers.set(
-      reg1,
-      (this.registers.get(reg2) ?? 0) * (this.registers.get(reg3) ?? 0)
-    );
+    const value1 = this.registers.get(reg2);
+    const value2 = this.registers.get(reg3);
+    if (value1 !== undefined && value2 !== undefined) {
+      this.registers.set(reg1, value1 * value2);
+    }
   }
 
   div(args: string[]) {
     const [reg1, reg2, reg3] = args;
-    this.registers.set(
-      reg1,
-      (this.registers.get(reg2) ?? 0) / (this.registers.get(reg3) ?? 1)
-    );
+    const value1 = this.registers.get(reg2);
+    const value2 = this.registers.get(reg3);
+    if (value1 !== undefined && value2 !== undefined) {
+      this.registers.set(reg1, value1 / value2);
+    }
   }
 
   and(args: string[]) {
     const [reg1, reg2] = args;
-    this.registers.set(
-      reg1,
-      (this.registers.get(reg1) ?? 0) & (this.registers.get(reg2) ?? 0)
-    );
+    const value1 = this.registers.get(reg1);
+    const value2 = this.registers.get(reg2);
+    if (value1 !== undefined && value2 !== undefined) {
+      this.registers.set(reg1, value1 & value2);
+    }
   }
 
   or(args: string[]) {
     const [reg1, reg2] = args;
-    this.registers.set(
-      reg1,
-      (this.registers.get(reg1) ?? 0) | (this.registers.get(reg2) ?? 0)
-    );
+    const value1 = this.registers.get(reg1);
+    const value2 = this.registers.get(reg2);
+    if (value1 !== undefined && value2 !== undefined) {
+      this.registers.set(reg1, value1 | value2);
+    }
   }
 
   not(args: string[]) {
     const [reg1] = args;
-    this.registers.set(reg1, ~(this.registers.get(reg1) ?? 0));
+    const value1 = this.registers.get(reg1);
+    if (value1 !== undefined) {
+      this.registers.set(reg1, ~value1);
+    }
   }
 
   xor(args: string[]) {
     const [reg1, reg2] = args;
-    this.registers.set(
-      reg1,
-      (this.registers.get(reg1) ?? 0) ^ (this.registers.get(reg2) ?? 0)
-    );
+    const value1 = this.registers.get(reg1);
+    const value2 = this.registers.get(reg2);
+    if (value1 !== undefined && value2 !== undefined) {
+      this.registers.set(reg1, value1 ^ value2);
+    }
   }
 
   load(args: string[]) {
     const [reg, addr] = args;
-    this.registers.set(reg, this.memory[parseInt(addr)]);
+    const value = this.memory[parseInt(addr)];
+    if (value !== undefined) {
+      this.registers.set(reg, value);
+    }
   }
 
   store(args: string[]) {
     const [addr, reg] = args;
-    this.memory[parseInt(addr)] = this.registers.get(reg) ?? 0;
+    const value = this.registers.get(reg);
+    if (value !== undefined) {
+      this.memory[parseInt(addr)] = value;
+    }
   }
 
   move(args: string[]) {
     const [reg1, reg2] = args;
-    this.registers.set(reg1, this.registers.get(reg2) ?? 0);
+    const value = this.registers.get(reg2);
+    if (value !== undefined) {
+      this.registers.set(reg1, value);
+    }
   }
 
   jmp(args: string[]) {
@@ -174,27 +195,18 @@ class CPU {
   }
 }
 
-// Sample program
-const program = [
-  "LOAD r1 10",
-  "LOAD r2 20",
-  "ADD r3 r1 r2",
-  "PRINT r3",
-  "SUB r3 r3 r1",
-  "PRINT r3",
-  "MUL r3 r3 r2",
-  "PRINT r3",
-  "DIV r3 r3 r2",
-  "PRINT r3",
-  "AND r1 r2",
-  "PRINT r1",
-  "OR r1 r2",
-  "PRINT r1",
-  "NOT r1",
-  "PRINT r1",
-  "XOR r1 r2",
-  "PRINT r1",
-];
+// Function to read the assembly file and execute it
+function executeAssemblyFile(filePath: string) {
+  const assemblyCode = readFileSync(filePath, "utf-8");
+  const instructions = assemblyCode
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 
-const cpu = new CPU();
-cpu.run(program);
+  const cpu = new CPU();
+  cpu.run(instructions);
+}
+
+// Specify the path to the assembly file
+const assemblyFilePath = join(__dirname, "../program.asm");
+executeAssemblyFile(assemblyFilePath);

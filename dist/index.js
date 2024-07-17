@@ -1,4 +1,7 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = require("fs");
+const path_1 = require("path");
 class CPU {
     constructor() {
         this.registers = new Map();
@@ -7,7 +10,6 @@ class CPU {
         // Initialize registers (for simplicity, we'll use r1, r2, r3, r4)
         ["r1", "r2", "r3", "r4"].forEach((reg) => this.registers.set(reg, 0));
     }
-    // Method to execute a given instruction
     execute(instruction) {
         const [opcode, ...args] = instruction.split(" ");
         switch (opcode) {
@@ -61,58 +63,88 @@ class CPU {
         }
     }
     add(args) {
-        var _a, _b;
         const [reg1, reg2, reg3] = args;
-        this.registers.set(reg1, ((_a = this.registers.get(reg2)) !== null && _a !== void 0 ? _a : 0) + ((_b = this.registers.get(reg3)) !== null && _b !== void 0 ? _b : 0));
+        const value1 = this.registers.get(reg2);
+        const value2 = this.registers.get(reg3);
+        if (value1 !== undefined && value2 !== undefined) {
+            this.registers.set(reg1, value1 + value2);
+        }
     }
     sub(args) {
-        var _a, _b;
         const [reg1, reg2, reg3] = args;
-        this.registers.set(reg1, ((_a = this.registers.get(reg2)) !== null && _a !== void 0 ? _a : 0) - ((_b = this.registers.get(reg3)) !== null && _b !== void 0 ? _b : 0));
+        const value1 = this.registers.get(reg2);
+        const value2 = this.registers.get(reg3);
+        if (value1 !== undefined && value2 !== undefined) {
+            this.registers.set(reg1, value1 - value2);
+        }
     }
     mul(args) {
-        var _a, _b;
         const [reg1, reg2, reg3] = args;
-        this.registers.set(reg1, ((_a = this.registers.get(reg2)) !== null && _a !== void 0 ? _a : 0) * ((_b = this.registers.get(reg3)) !== null && _b !== void 0 ? _b : 0));
+        const value1 = this.registers.get(reg2);
+        const value2 = this.registers.get(reg3);
+        if (value1 !== undefined && value2 !== undefined) {
+            this.registers.set(reg1, value1 * value2);
+        }
     }
     div(args) {
-        var _a, _b;
         const [reg1, reg2, reg3] = args;
-        this.registers.set(reg1, ((_a = this.registers.get(reg2)) !== null && _a !== void 0 ? _a : 0) / ((_b = this.registers.get(reg3)) !== null && _b !== void 0 ? _b : 1));
+        const value1 = this.registers.get(reg2);
+        const value2 = this.registers.get(reg3);
+        if (value1 !== undefined && value2 !== undefined) {
+            this.registers.set(reg1, value1 / value2);
+        }
     }
     and(args) {
-        var _a, _b;
         const [reg1, reg2] = args;
-        this.registers.set(reg1, ((_a = this.registers.get(reg1)) !== null && _a !== void 0 ? _a : 0) & ((_b = this.registers.get(reg2)) !== null && _b !== void 0 ? _b : 0));
+        const value1 = this.registers.get(reg1);
+        const value2 = this.registers.get(reg2);
+        if (value1 !== undefined && value2 !== undefined) {
+            this.registers.set(reg1, value1 & value2);
+        }
     }
     or(args) {
-        var _a, _b;
         const [reg1, reg2] = args;
-        this.registers.set(reg1, ((_a = this.registers.get(reg1)) !== null && _a !== void 0 ? _a : 0) | ((_b = this.registers.get(reg2)) !== null && _b !== void 0 ? _b : 0));
+        const value1 = this.registers.get(reg1);
+        const value2 = this.registers.get(reg2);
+        if (value1 !== undefined && value2 !== undefined) {
+            this.registers.set(reg1, value1 | value2);
+        }
     }
     not(args) {
-        var _a;
         const [reg1] = args;
-        this.registers.set(reg1, ~((_a = this.registers.get(reg1)) !== null && _a !== void 0 ? _a : 0));
+        const value1 = this.registers.get(reg1);
+        if (value1 !== undefined) {
+            this.registers.set(reg1, ~value1);
+        }
     }
     xor(args) {
-        var _a, _b;
         const [reg1, reg2] = args;
-        this.registers.set(reg1, ((_a = this.registers.get(reg1)) !== null && _a !== void 0 ? _a : 0) ^ ((_b = this.registers.get(reg2)) !== null && _b !== void 0 ? _b : 0));
+        const value1 = this.registers.get(reg1);
+        const value2 = this.registers.get(reg2);
+        if (value1 !== undefined && value2 !== undefined) {
+            this.registers.set(reg1, value1 ^ value2);
+        }
     }
     load(args) {
         const [reg, addr] = args;
-        this.registers.set(reg, this.memory[parseInt(addr)]);
+        const value = this.memory[parseInt(addr)];
+        if (value !== undefined) {
+            this.registers.set(reg, value);
+        }
     }
     store(args) {
-        var _a;
         const [addr, reg] = args;
-        this.memory[parseInt(addr)] = (_a = this.registers.get(reg)) !== null && _a !== void 0 ? _a : 0;
+        const value = this.registers.get(reg);
+        if (value !== undefined) {
+            this.memory[parseInt(addr)] = value;
+        }
     }
     move(args) {
-        var _a;
         const [reg1, reg2] = args;
-        this.registers.set(reg1, (_a = this.registers.get(reg2)) !== null && _a !== void 0 ? _a : 0);
+        const value = this.registers.get(reg2);
+        if (value !== undefined) {
+            this.registers.set(reg1, value);
+        }
     }
     jmp(args) {
         const [addr] = args;
@@ -141,26 +173,16 @@ class CPU {
         }
     }
 }
-// Sample program
-const program = [
-    "LOAD r1 10",
-    "LOAD r2 20",
-    "ADD r3 r1 r2",
-    "PRINT r3",
-    "SUB r3 r3 r1",
-    "PRINT r3",
-    "MUL r3 r3 r2",
-    "PRINT r3",
-    "DIV r3 r3 r2",
-    "PRINT r3",
-    "AND r1 r2",
-    "PRINT r1",
-    "OR r1 r2",
-    "PRINT r1",
-    "NOT r1",
-    "PRINT r1",
-    "XOR r1 r2",
-    "PRINT r1",
-];
-const cpu = new CPU();
-cpu.run(program);
+// Function to read the assembly file and execute it
+function executeAssemblyFile(filePath) {
+    const assemblyCode = (0, fs_1.readFileSync)(filePath, "utf-8");
+    const instructions = assemblyCode
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+    const cpu = new CPU();
+    cpu.run(instructions);
+}
+// Specify the path to the assembly file
+const assemblyFilePath = (0, path_1.join)(__dirname, "../program.asm");
+executeAssemblyFile(assemblyFilePath);
