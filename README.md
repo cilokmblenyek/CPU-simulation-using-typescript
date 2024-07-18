@@ -523,3 +523,7 @@ PRINT r5           // (Skipped due to jump) Print the value of r5 (not executed)
 PRINT r5           // (Skipped due to jump) Print the value of r5 (not executed).
 PRINT r1           // Print the value of r1 (-11).
 ```
+
+## Sumber
+
+Kuliah Orkom D: LECTURE 8 Basic Processing Unit
