@@ -7,8 +7,14 @@ class CPU {
         this.registers = new Map();
         this.memory = new Array(256).fill(0);
         this.pc = 0;
-        // Initialize registers (for simplicity, we'll use r1, r2, r3, r4)
-        ["r1", "r2", "r3", "r4"].forEach((reg) => this.registers.set(reg, 0));
+        // Inisiasi register
+        ["r1", "r2", "r3", "r4", "r5", "r6"].forEach((reg) => this.registers.set(reg, 0));
+        // Initialize memory with some values
+        this.memory[0] = 10;
+        this.memory[1] = 20;
+        this.memory[2] = 30;
+        this.memory[3] = 40;
+        this.memory[4] = 10;
     }
     execute(instruction) {
         const [opcode, ...args] = instruction.split(" ");
@@ -127,22 +133,48 @@ class CPU {
     }
     load(args) {
         const [reg, addr] = args;
-        const addressValue = parseInt(addr);
-        if (!isNaN(addressValue)) {
-            this.registers.set(reg, addressValue);
+        // Check for the format X(R2)
+        const match = addr.match(/(\d+)\((r\d+)\)/);
+        if (match) {
+            const offset = parseInt(match[1]);
+            const baseReg = match[2];
+            const baseAddress = this.registers.get(baseReg);
+            if (baseAddress !== undefined) {
+                const effectiveAddress = baseAddress + offset;
+                const value = this.memory[effectiveAddress];
+                if (value !== undefined) {
+                    this.registers.set(reg, value);
+                }
+            }
         }
         else {
-            const value = this.memory[addressValue];
+            // Original LOAD functionality
+            const value = this.memory[parseInt(addr)];
             if (value !== undefined) {
                 this.registers.set(reg, value);
             }
         }
     }
     store(args) {
-        const [addr, reg] = args;
-        const value = this.registers.get(reg);
-        if (value !== undefined) {
-            this.memory[parseInt(addr)] = value;
+        const [reg, addr] = args;
+        // Check for the format X(R2)
+        const match = addr.match(/(\d+)\((r\d+)\)/);
+        if (match) {
+            const offset = parseInt(match[1]);
+            const baseReg = match[2];
+            const baseAddress = this.registers.get(baseReg);
+            const value = this.registers.get(reg);
+            if (baseAddress !== undefined && value !== undefined) {
+                const effectiveAddress = baseAddress + offset;
+                this.memory[effectiveAddress] = value;
+            }
+        }
+        else {
+            // Original STORE functionality
+            const value = this.registers.get(reg);
+            if (value !== undefined) {
+                this.memory[parseInt(addr)] = value;
+            }
         }
     }
     move(args) {
@@ -174,8 +206,9 @@ class CPU {
     }
     run(program) {
         while (this.pc < program.length) {
-            this.execute(program[this.pc]);
+            let currentInstruction = program[this.pc];
             this.pc++;
+            this.execute(currentInstruction);
         }
     }
 }
